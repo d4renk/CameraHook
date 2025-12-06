@@ -1,4 +1,13 @@
 <resources>
     <string name="app_name">CameraHook</string>
     <string name="xposed_description">该模块用于Hook摄像头的数据</string>
+    <string name="config_summary">当前配置：
+目标包名：%1$s
+相机控制类：%2$s
+触发方法：%3$s
+相机字段：%4$s
+视频路径：%5$s
+配置来源：%6$s</string>
+    <string name="prefs_loaded">已从共享偏好中读取</string>
+    <string name="prefs_not_loaded">使用默认值（未读取到共享偏好）</string>
 </resources>
