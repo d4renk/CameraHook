@@ -14,13 +14,24 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: set up JDK 11
+      id: setup-java
       uses: actions/setup-java@v4
       with:
         java-version: '11'
         distribution: 'temurin'
         cache: gradle
 
+    - name: Install Android SDK
+      uses: android-actions/setup-android@v3
+
+    - name: Accept licenses and install packages
+      run: |
+        yes | sdkmanager --licenses
+        sdkmanager "platform-tools" "platforms;android-29" "build-tools;29.0.0"
+
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Build with Gradle
-      run: ./gradlew build
+      env:
+        JAVA_HOME: ${{ steps.setup-java.outputs.path }}
+      run: ./gradlew --no-daemon build
