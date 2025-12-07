@@ -24,11 +24,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Set up JDK 11
+    - name: Set up JDK 17
       id: setup-java
       uses: actions/setup-java@v4
       with:
-        java-version: '11'
+        java-version: '17'
         distribution: 'temurin'
 
     - name: Install Android SDK
@@ -49,8 +49,6 @@ jobs:
         restore-keys: ${{ runner.os }}-gradle-
 
     - name: Build with Gradle Wrapper
-      env:
-        JAVA_HOME: ${{ steps.setup-java.outputs.path }}
       run: ./gradlew --no-daemon build
 
     # NOTE: The Gradle Wrapper is the default and recommended way to run Gradle (https://docs.gradle.org/current/userguide/gradle_wrapper.html).
@@ -74,11 +72,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Set up JDK 11
+    - name: Set up JDK 17
       id: setup-java
       uses: actions/setup-java@v4
       with:
-        java-version: '11'
+        java-version: '17'
         distribution: 'temurin'
 
     - name: Install Android SDK
@@ -99,6 +97,4 @@ jobs:
         restore-keys: ${{ runner.os }}-gradle-
 
     - name: Generate dependency graph
-      env:
-        JAVA_HOME: ${{ steps.setup-java.outputs.path }}
       run: ./gradlew --no-daemon dependencies

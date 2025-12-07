@@ -13,11 +13,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up JDK 8
+      - name: Set up JDK 17
         id: setup-java
         uses: actions/setup-java@v4
         with:
-          java-version: '8'
+          java-version: '17'
           distribution: 'temurin'
           cache: gradle
 
@@ -45,8 +45,6 @@ jobs:
           fi
 
       - name: Build debug APK
-        env:
-          JAVA_HOME: ${{ steps.setup-java.outputs.path }}
         run: |
           chmod +x gradlew
           ./gradlew --no-daemon assembleDebug
