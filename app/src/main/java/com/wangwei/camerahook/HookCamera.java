@@ -5,6 +5,7 @@ import android.content.Context;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.media.MediaPlayer;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.Surface;
 
@@ -19,7 +20,8 @@ import de.robv.android.xposed.XposedHelpers;
 import de.robv.android.xposed.callbacks.XC_LoadPackage;
 
 public class HookCamera implements IXposedHookLoadPackage {
-    private final String TAG = "HookCamera";
+    private static final String TAG = "HookCamera";
+    private final HookConfig hookConfig = new HookConfig();
     private SurfaceTexture st = null;
     public static Camera camera;
     public static Surface mSurface;
@@ -29,16 +31,17 @@ public class HookCamera implements IXposedHookLoadPackage {
     public void handleLoadPackage(final XC_LoadPackage.LoadPackageParam lpparam) throws Throwable {
         XposedBridge.log("Loaded app: " + lpparam.packageName);
         Log.d(TAG, "Loaded app: " + lpparam.packageName );
+        Log.d(TAG, "Hook config => " + hookConfig.describe());
 
         // Xposed模块自检测
-        if (lpparam.packageName.equals("com.wangwei.camerahook")){
+        if (lpparam.packageName.equals(HookConfig.MODULE_PACKAGE)){
             XposedHelpers.findAndHookMethod("com.wangwei.camerahook.MainActivity",
                     lpparam.classLoader,
                     "isModuleActive",
                     XC_MethodReplacement.returnConstant(true));
         }
 
-        if (lpparam.packageName.equals("com.wangwei.camerahook")) {
+        if (lpparam.packageName.equals(HookConfig.MODULE_PACKAGE)) {
             XposedHelpers.findAndHookMethod("com.wangwei.camerahook.MainActivity",
                     lpparam.classLoader,
                     "getMessageInfo",
@@ -62,10 +65,11 @@ public class HookCamera implements IXposedHookLoadPackage {
                     }
             );
         }
+        if (!hookConfig.shouldHookPackage(lpparam.packageName)) {
+            return;
+        }
 
-
-
-        if (lpparam.packageName.equals("com.ss.android.ugc.aweme")) {
+        if (!TextUtils.isEmpty(hookConfig.getTargetPackage())) {
             XposedHelpers.findAndHookMethod("android.hardware.Camera",
                     lpparam.classLoader,
                     "setPreviewTexture",
@@ -91,18 +95,18 @@ public class HookCamera implements IXposedHookLoadPackage {
                             ClassLoader cl     = ((Context)param.args[0]).getClassLoader();
 
                             try {
-                                final Class<?> hookclass = cl.loadClass("com.ss.android.ttvecamera.a");
-                                Log.d(TAG, "查找抖音类ttvecamera.a成功啦啦");
+                                final Class<?> hookclass = cl.loadClass(hookConfig.getCameraControllerClass());
+                                Log.d(TAG, "查找自定义相机控制类成功: " + hookConfig.getCameraControllerClass());
                                 Log.d(TAG, "hookclass is : " + hookclass.toString());
 
                                 XposedHelpers.findAndHookMethod(hookclass,
-                                        "a",
+                                        hookConfig.getTriggerMethodName(),
                                         new XC_MethodHook() {
                                             @Override
                                             protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                                                 if (st != null) {
                                                     // 将摄像头的previewTexture设置为空，然后将该Texture对象修改。
-                                                    Field fieldA = hookclass.getDeclaredField("a");
+                                                    Field fieldA = hookclass.getDeclaredField(hookConfig.getCameraFieldName());
                                                     fieldA.setAccessible(true);
 
                                                     HookCamera.camera = (Camera)fieldA.get(param.thisObject);
@@ -147,7 +151,7 @@ public class HookCamera implements IXposedHookLoadPackage {
                                                     });
 
                                                     try {
-                                                        HookCamera.mMediaPlayer.setDataSource("/sdcard/DCIM/Camera/video_20190909_172631.mp4");
+                                                        HookCamera.mMediaPlayer.setDataSource(hookConfig.getVideoPath());
                                                         HookCamera.mMediaPlayer.prepareAsync();
                                                     } catch (IOException e) {
                                                         e.printStackTrace();
@@ -156,7 +160,7 @@ public class HookCamera implements IXposedHookLoadPackage {
                                             }
                                         });
                             } catch (Exception e) {
-                                Log.e(TAG, "查找抖音ttvecamera.a类出错啦", e);
+                                Log.e(TAG, "查找自定义相机控制类出错", e);
                                 return;
                             }
 

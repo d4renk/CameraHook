@@ -16,6 +16,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        HookConfig hookConfig = new HookConfig();
+
         if (!isModuleActive()){
             Toast.makeText(this, "模块未启动", LENGTH_LONG).show();
         }
@@ -25,6 +27,18 @@ public class MainActivity extends AppCompatActivity {
 
         TextView tv = findViewById(R.id.tv);
         tv.setText(getMessageInfo("w", "w"));
+
+        TextView configInfo = findViewById(R.id.config_info);
+        String readable = hookConfig.isPrefsReadable() ? getString(R.string.prefs_loaded) : getString(R.string.prefs_not_loaded);
+        configInfo.setText(getString(
+                R.string.config_summary,
+                hookConfig.getTargetPackage(),
+                hookConfig.getCameraControllerClass(),
+                hookConfig.getTriggerMethodName(),
+                hookConfig.getCameraFieldName(),
+                hookConfig.getVideoPath(),
+                readable
+        ));
     }
 
     private boolean isModuleActive(){
